@@ -67,8 +67,15 @@ class SyncNetInstance(torch.nn.Module):
         flist = glob.glob(os.path.join(opt.tmp_dir,opt.reference,'*.jpg'))
         flist.sort()
 
+        _TARGET_SIZE = (224, 224)
         for fname in flist:
-            images.append(cv2.imread(fname))
+            img = cv2.imread(fname)
+            h, w = img.shape[:2]
+            if (w, h) != _TARGET_SIZE:
+                print("WARNING: Resizing %s from %s to %s" % (fname, (w, h), _TARGET_SIZE))
+                interp = cv2.INTER_AREA if (w > _TARGET_SIZE[0] or h > _TARGET_SIZE[1]) else cv2.INTER_LINEAR
+                img = cv2.resize(img, _TARGET_SIZE, interpolation=interp)
+            images.append(img)
 
         im = numpy.stack(images,axis=3)
         im = numpy.expand_dims(im,axis=0)
